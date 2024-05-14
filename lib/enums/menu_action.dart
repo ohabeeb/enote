@@ -1,0 +1,4 @@
+enum MenuActions {
+  logout,
+  profile,
+}

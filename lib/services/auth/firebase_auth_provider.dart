@@ -1,9 +1,11 @@
+import 'package:enote/firebase_options.dart';
 import 'package:enote/services/auth/auth_provider.dart';
 import 'package:enote/services/auth/auth_exceptions.dart';
 import 'package:enote/services/auth/auth_user.dart';
 
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
+import 'package:firebase_core/firebase_core.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
@@ -57,9 +59,7 @@ class FirebaseAuthProvider implements AuthProvider {
         throw UserNotFoundAuthException();
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-credential') {
-        throw InvalidCredentialsAuthException();
-      } else if (e.code == 'user-not-found') {
+      if (e.code == 'user-not-found') {
         throw UserNotFoundAuthException();
       } else if (e.code == 'wrong-password') {
         throw WeakPasswordAuthException();
@@ -90,5 +90,11 @@ class FirebaseAuthProvider implements AuthProvider {
     } else {
       throw UserNotLoggedInAuthException();
     }
+  }
+
+  @override
+  Future<void> initialize() async {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   }
 }

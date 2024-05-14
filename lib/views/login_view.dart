@@ -1,6 +1,7 @@
 import 'package:enote/constants/routes.dart';
 import 'package:enote/helpers/show_error_dialog.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:enote/services/auth/auth_exceptions.dart';
+import 'package:enote/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer';
 
@@ -66,10 +67,9 @@ class _LoginViewState extends State<LoginView> {
             TextButton(
               onPressed: () async {
                 try {
-                  final userCredential = await FirebaseAuth.instance
-                      .signInWithEmailAndPassword(
-                          email: _email.text, password: _password.text);
-                  if (userCredential.user!.emailVerified) {
+                  final userCredential = await AuthService.firebase()
+                      .logIn(email: _email.text, password: _password.text);
+                  if (userCredential.isEmailVerified) {
                     Navigator.of(context)
                         .pushNamedAndRemoveUntil(notesRoute, (route) => false);
                   } else {
@@ -79,16 +79,13 @@ class _LoginViewState extends State<LoginView> {
                   }
 
                   log(userCredential.toString());
-                } on FirebaseAuthException catch (e) {
-                  if (e.code == 'invalid-credential') {
-                    await showErrorDialog(context, 'Invalid credentials');
-                    // log('Invalid Credentials');
-                  } else if (e.code == 'network-request-failed') {
-                    await showErrorDialog(context, 'No internet connection.');
-                  } else {
-                    await showErrorDialog(
-                        context, 'Something went wronged, please try again.');
-                  }
+                } on WrongPasswordAuthException {
+                  await showErrorDialog(context, 'Wrong password');
+                } on UserNotFoundAuthException {
+                  await showErrorDialog(context, 'User not found');
+                } on GenericAuthException {
+                  await showErrorDialog(
+                      context, 'Authentication error! Please try again.');
                 } catch (e) {
                   log("Something went wronged!");
                 }
