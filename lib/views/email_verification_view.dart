@@ -1,5 +1,5 @@
 import 'package:enote/constants/routes.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:enote/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class VerifyEmailView extends StatefulWidget {
@@ -10,8 +10,6 @@ class VerifyEmailView extends StatefulWidget {
 }
 
 class _VerifyEmailViewState extends State<VerifyEmailView> {
-  final user = FirebaseAuth.instance.currentUser;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,18 +29,18 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
-                'Email verification link as been sent to ${user!.email.toString()}',
+            const Text(
+                'Email verification link as been sent to your email address',
                 textAlign: TextAlign.center),
             TextButton(
                 onPressed: () async {
-                  await user?.sendEmailVerification();
+                  await AuthService.firebase().sendEmailVerification();
                 },
                 child:
                     const Text("Click here if you don't received email link.")),
             TextButton(
               onPressed: () async {
-                await FirebaseAuth.instance.signOut();
+                await AuthService.firebase().logOut();
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   registerRoute,
                   (route) => false,
