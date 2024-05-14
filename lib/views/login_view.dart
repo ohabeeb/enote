@@ -1,7 +1,8 @@
-import 'package:enote/firebase_options.dart';
+import 'package:enote/constants/routes.dart';
+import 'package:enote/helpers/show_error_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -68,16 +69,28 @@ class _LoginViewState extends State<LoginView> {
                   final userCredential = await FirebaseAuth.instance
                       .signInWithEmailAndPassword(
                           email: _email.text, password: _password.text);
-                  Navigator.of(context).pushNamedAndRemoveUntil('/notes/', (route) => false);
-                  print(userCredential);
+                  if (userCredential.user!.emailVerified) {
+                    Navigator.of(context)
+                        .pushNamedAndRemoveUntil(notesRoute, (route) => false);
+                  } else {
+                    Navigator.of(context).pushNamed(
+                      emailVerificationRoute,
+                    );
+                  }
+
+                  log(userCredential.toString());
                 } on FirebaseAuthException catch (e) {
                   if (e.code == 'invalid-credential') {
-                    print('Invalid Credentials');
+                    await showErrorDialog(context, 'Invalid credentials');
+                    // log('Invalid Credentials');
+                  } else if (e.code == 'network-request-failed') {
+                    await showErrorDialog(context, 'No internet connection.');
+                  } else {
+                    await showErrorDialog(
+                        context, 'Something went wronged, please try again.');
                   }
-                  print(e.message);
-                  print(e.code == 'invalid-credential');
                 } catch (e) {
-                  print("Something went wronged!");
+                  log("Something went wronged!");
                 }
               },
               child: const Text('Login'),
@@ -85,7 +98,7 @@ class _LoginViewState extends State<LoginView> {
             TextButton(
               onPressed: () {
                 Navigator.of(context)
-                    .pushNamedAndRemoveUntil('/register/', (route) => false);
+                    .pushNamedAndRemoveUntil(registerRoute, (route) => false);
               },
               child: const Text('Not registered yet? Register here!'),
             )

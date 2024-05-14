@@ -1,7 +1,8 @@
+import 'package:enote/constants/routes.dart';
+import 'package:enote/helpers/show_error_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import '../firebase_options.dart';
+import 'dart:developer';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -66,21 +67,31 @@ class _RegisterViewState extends State<RegisterView> {
                 final password = _password.text;
 
                 try {
-                  final userCredential = await FirebaseAuth.instance
-                      .createUserWithEmailAndPassword(
+                  await FirebaseAuth.instance.createUserWithEmailAndPassword(
                     email: email,
                     password: password,
                   );
+
+                  final user = FirebaseAuth.instance.currentUser;
+                  await user?.sendEmailVerification();
+
+                  Navigator.of(context).pushNamed(emailVerificationRoute);
+
                 } on FirebaseAuthException catch (e) {
                   if (e.code == 'email-already-in-use') {
-                    print('Email already in use');
+                    await showErrorDialog(context, 'Email already in use');
                   } else if (e.code == 'weak-password') {
-                    print('Your password is weak');
+                    await showErrorDialog(context, 'Your password is weak');
                   } else if (e.code == 'invalid-email') {
-                    print('Invalid email address');
+                    await showErrorDialog(context, 'Invalid email address');
+                  } else if (e.code == 'network-request-failed') {
+                    await showErrorDialog(context, 'No internet connection.');
+                  } else {
+                    await showErrorDialog(
+                        context, 'Something went wronged, please try again');
                   }
                 } catch (e) {
-                  print(e);
+                  log(e.toString());
                 }
               },
               child: const Text('Register'),
@@ -88,7 +99,7 @@ class _RegisterViewState extends State<RegisterView> {
             TextButton(
                 onPressed: () {
                   Navigator.of(context)
-                      .pushNamedAndRemoveUntil('/login/', (route) => false);
+                      .pushNamedAndRemoveUntil(loginRoute, (route) => false);
                 },
                 child: const Text('Already register? Login here!'))
           ],

@@ -1,3 +1,4 @@
+import 'package:enote/constants/routes.dart';
 import 'package:enote/firebase_options.dart';
 import 'package:enote/views/email_verification_view.dart';
 import 'package:enote/views/login_view.dart';
@@ -14,14 +15,15 @@ void main() {
       title: 'eNote',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
       ),
       home: const HomePage(),
       routes: {
-        '/login/': (context) => const LoginView(),
-        '/register/': (context) => const RegisterView(),
-        '/notes/': (context) => const NotesView(),
+        loginRoute: (context) => const LoginView(),
+        registerRoute: (context) => const RegisterView(),
+        notesRoute: (context) => const NotesView(),
+        emailVerificationRoute: (context) => const VerifyEmailView(),
       },
     ),
   );
@@ -45,7 +47,7 @@ class HomePage extends StatelessWidget {
               if (user.emailVerified) {
                 return const NotesView();
               } else {
-                return const VerifyEmail();
+                return const VerifyEmailView();
               }
             } else {
               return const LoginView();
